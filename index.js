@@ -4,9 +4,9 @@ const cors = require('cors');
 require('dotenv').config();
 
 // Import routes
-const authRoutes = require('./routes/auth.routes');
-const transactionRoutes = require('./routes/transaction.routes');
-const vipRoutes = require('./routes/vip.routes');
+const authRoutes = require('./src/routes/auth.routes');
+const transactionRoutes = require('./src/routes/transaction.routes');
+const vipRoutes = require('./src/routes/vip.routes');
 
 const app = express();
 

@@ -30,6 +30,15 @@ app.use('/api/auth', authRoutes);
 app.use('/api/transactions', transactionRoutes);
 app.use('/api/vip', vipRoutes);
 
+// Root route for deployment check
+app.get('/', (req, res) => {
+    res.json({
+        status: 'success',
+        message: 'API is running successfully',
+        timestamp: new Date().toISOString()
+    });
+});
+
 // Error handling middleware
 app.use((err, req, res, next) => {
     console.error(err.stack);

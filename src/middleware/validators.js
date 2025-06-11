@@ -70,4 +70,13 @@ exports.validateVipPurchase = [
             }
             return true;
         })
+];
+
+exports.createOTPValidator = [
+    check('type')
+        .isIn(['register', 'reset-password'])
+        .withMessage('Invalid OTP type'),
+    check('value')
+        .isLength({ min: 6, max: 6 })
+        .withMessage('OTP must be 6 digits')
 ]; 

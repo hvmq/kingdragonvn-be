@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/user.model');
 const { validationResult } = require('express-validator');
+const { verifyOTP } = require('./otp.controller');
 
 // Register new user
 exports.register = async (req, res) => {
@@ -22,11 +23,10 @@ exports.register = async (req, res) => {
         }
 
         // Verify OTP
-        // For demonstration, we'll use a fixed OTP. In production, this should be generated and stored
-        const VALID_OTP = '123456'; // This should be replaced with your actual OTP verification logic
-        if (otp !== VALID_OTP) {
+        const isValidOTP = await verifyOTP('register', otp);
+        if (!isValidOTP) {
             return res.status(400).json({
-                message: 'Invalid OTP'
+                message: 'Invalid or expired OTP'
             });
         }
 
@@ -166,15 +166,24 @@ exports.resetPassword = async (req, res) => {
         }
 
         const { phoneNumber, otp, newPassword } = req.body;
+        console.log('Reset password request:', { phoneNumber, otp });
 
         // Find user by phone number
-        const user = await User.findOne({
-            phoneNumber,
-            resetPasswordOTP: otp,
-            resetPasswordExpire: { $gt: Date.now() }
-        });
-
+        const user = await User.findOne({ phoneNumber });
         if (!user) {
+            console.log('User not found:', phoneNumber);
+            return res.status(404).json({
+                message: 'User not found with this phone number'
+            });
+        }
+
+        console.log('User found:', user._id);
+
+        // Verify OTP
+        const isValidOTP = await verifyOTP('reset-password', otp);
+        console.log('OTP verification result:', isValidOTP);
+
+        if (!isValidOTP) {
             return res.status(400).json({
                 message: 'Invalid or expired OTP'
             });
@@ -182,16 +191,16 @@ exports.resetPassword = async (req, res) => {
 
         // Update password
         user.password = newPassword;
-        user.resetPasswordOTP = undefined;
-        user.resetPasswordExpire = undefined;
         await user.save();
+
+        console.log('Password reset successful for user:', user._id);
 
         res.json({
             message: 'Password has been reset successfully'
         });
 
     } catch (error) {
-        console.error(error);
+        console.error('Error in resetPassword:', error);
         res.status(500).json({ message: 'Server error' });
     }
 };

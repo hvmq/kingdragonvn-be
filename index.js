@@ -7,6 +7,7 @@ require('dotenv').config();
 const authRoutes = require('./src/routes/auth.routes');
 const transactionRoutes = require('./src/routes/transaction.routes');
 const vipRoutes = require('./src/routes/vip.routes');
+const otpRoutes = require('./src/routes/otp.routes');
 
 const app = express();
 
@@ -29,6 +30,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/api/auth', authRoutes);
 app.use('/api/transactions', transactionRoutes);
 app.use('/api/vip', vipRoutes);
+app.use('/api/otp', otpRoutes);
 
 // Root route for deployment check
 app.get('/', (req, res) => {

@@ -91,26 +91,21 @@ exports.purchasePackage = async (req, res) => {
         }
 
         // Get user
-        const user = await User.findById(userId);
+        const user = await User.findById(userId).populate('vipInfo.package');
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
 
-        // Calculate price based on current VIP
-        let finalPrice = vipPackage.price;
+        // Calculate adjusted price based on current VIP
+        let adjustedPrice = vipPackage.price;
         if (user.vipInfo && user.vipInfo.isActive && user.vipInfo.package) {
             const currentVip = user.vipInfo.package;
-            if (currentVip.name === 'VIP 1') {
-                if (vipPackage.name === 'VIP 2' || vipPackage.name === 'VIP 3') {
-                    finalPrice = vipPackage.price - 10000;
-                }
-            } else if (currentVip.name === 'VIP 2' && vipPackage.name === 'VIP 3') {
-                finalPrice = vipPackage.price - 100000;
-            }
+            // Subtract the price of current VIP package from the new package price
+            adjustedPrice = vipPackage.price - currentVip.price;
         }
 
-        // Check balance
-        if (user.balance < finalPrice) {
+        // Check balance with adjusted price
+        if (user.balance < adjustedPrice) {
             return res.status(400).json({ message: 'Insufficient balance' });
         }
 
@@ -119,13 +114,16 @@ exports.purchasePackage = async (req, res) => {
         const endDate = new Date();
         endDate.setDate(endDate.getDate() + vipPackage.duration);
 
-        // If user already has VIP, extend the duration
+        // If user already has VIP, use the later date between current end date and new end date
         if (user.vipInfo && user.vipInfo.isActive && user.vipInfo.endDate > startDate) {
-            endDate.setDate(user.vipInfo.endDate.getDate() + vipPackage.duration);
+            const currentEndDate = new Date(user.vipInfo.endDate);
+            if (currentEndDate > endDate) {
+                endDate.setTime(currentEndDate.getTime());
+            }
         }
 
-        // Update user's balance and VIP info
-        user.balance -= finalPrice;
+        // Update user's balance with adjusted price and VIP info
+        user.balance -= adjustedPrice;
         user.vipInfo = {
             package: vipPackage._id,
             startDate,
@@ -143,7 +141,9 @@ exports.purchasePackage = async (req, res) => {
                 endDate,
                 isActive: true
             },
-            remainingBalance: user.balance
+            remainingBalance: user.balance,
+            adjustedPrice: adjustedPrice,
+            originalPrice: vipPackage.price
         });
 
     } catch (error) {

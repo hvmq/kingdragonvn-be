@@ -12,6 +12,18 @@
             "dest": "./index.js"
         },
         {
+            "src": "/api/auth/(.*)",
+            "dest": "./index.js"
+        },
+        {
+            "src": "/api/transactions/(.*)",
+            "dest": "./index.js"
+        },
+        {
+            "src": "/api/vip/(.*)",
+            "dest": "./index.js"
+        },
+        {
             "src": "/(.*)",
             "dest": "./index.js"
         }

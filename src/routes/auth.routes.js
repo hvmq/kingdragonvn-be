@@ -8,7 +8,8 @@ const {
     resetPassword,
     getProfile,
     getAllUsers,
-    searchUsers
+    searchUsers,
+    logout
 } = require('../controllers/auth.controller');
 const {
     registerValidator,
@@ -25,6 +26,7 @@ router.post('/reset-password', resetPasswordValidator, resetPassword);
 
 // Protected routes
 router.get('/profile', protect, getProfile);
+router.post('/logout', protect, logout);
 
 // Admin routes
 router.get('/users', protect, authorize('admin'), getAllUsers);

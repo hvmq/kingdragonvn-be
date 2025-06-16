@@ -61,6 +61,14 @@ const userSchema = new mongoose.Schema({
         type: Date,
         select: false
     },
+    deviceToken: {
+        type: String,
+        default: null
+    },
+    lastLoginAt: {
+        type: Date,
+        default: null
+    },
     createdAt: {
         type: Date,
         default: Date.now

@@ -73,7 +73,7 @@ exports.login = async (req, res) => {
             return res.status(400).json({ errors: errors.array() });
         }
 
-        const { phoneNumber, password } = req.body;
+        const { phoneNumber, password, deviceToken } = req.body;
 
         // Check if user exists
         const user = await User.findOne({ phoneNumber });
@@ -91,6 +91,19 @@ exports.login = async (req, res) => {
         if (!user.isVerified) {
             return res.status(401).json({ message: 'Please verify your phone number first' });
         }
+
+        // Check if user is already logged in on another device
+        if (user.deviceToken && user.deviceToken !== deviceToken) {
+            return res.status(401).json({
+                message: 'Account is already logged in on another device',
+                lastLoginAt: user.lastLoginAt
+            });
+        }
+
+        // Update device token and last login time
+        user.deviceToken = deviceToken;
+        user.lastLoginAt = new Date();
+        await user.save();
 
         // Generate JWT token
         const token = jwt.sign(
@@ -110,6 +123,29 @@ exports.login = async (req, res) => {
             }
         });
 
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+// Logout user
+exports.logout = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const user = await User.findById(userId);
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Clear device token
+        user.deviceToken = null;
+        await user.save();
+
+        res.json({
+            message: 'Logged out successfully'
+        });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Server error' });

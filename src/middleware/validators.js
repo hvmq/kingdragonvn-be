@@ -79,4 +79,31 @@ exports.createOTPValidator = [
     check('value')
         .isLength({ min: 6, max: 6 })
         .withMessage('OTP must be 6 digits')
+];
+
+// === VIP ADMIN VALIDATORS ===
+
+exports.validateGrantVip = [
+    body('userId')
+        .notEmpty()
+        .withMessage('User ID is required')
+        .custom((value) => {
+            if (!mongoose.Types.ObjectId.isValid(value)) {
+                throw new Error('Invalid user ID');
+            }
+            return true;
+        }),
+    body('packageId')
+        .notEmpty()
+        .withMessage('Package ID is required')
+        .custom((value) => {
+            if (!mongoose.Types.ObjectId.isValid(value)) {
+                throw new Error('Invalid package ID');
+            }
+            return true;
+        }),
+    body('duration')
+        .optional()
+        .isInt({ min: 1 })
+        .withMessage('Duration must be a positive integer (days)')
 ]; 

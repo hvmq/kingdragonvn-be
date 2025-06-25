@@ -91,7 +91,7 @@ exports.login = async (req, res) => {
         if (!user.isVerified) {
             return res.status(401).json({ message: 'Please verify your phone number first' });
         }
-
+        console.log(user.deviceToken, deviceToken);
         // Check if user is already logged in on another device
         if (user.deviceToken && user.deviceToken !== deviceToken) {
             return res.status(401).json({
